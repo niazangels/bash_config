@@ -1,2 +1,4 @@
-# bash_config
-My bash settings
+# .bashrc configurations
+
+Customised for Ubuntu.
+
