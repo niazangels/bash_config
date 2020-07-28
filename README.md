@@ -1,4 +1,1 @@
-# .bashrc configurations
-
-Customised for Ubuntu.
-
+# A few configurations
