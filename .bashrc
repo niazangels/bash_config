@@ -1,14 +1,16 @@
-
 # ~/.bashrc: executed by bash(1) for non-login shells.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
 
 # If not running interactively, don't do anything
-[ -z "$PS1" ] && return
+case $- in
+    *i*) ;;
+      *) return;;
+esac
 
-# don't put duplicate lines in the history. See bash(1) for more options
-# ... or force ignoredups and ignorespace
-HISTCONTROL=ignoredups:ignorespace
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
 
 # append to the history file, don't overwrite it
 shopt -s histappend
@@ -21,17 +23,21 @@ HISTFILESIZE=2000
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+#shopt -s globstar
+
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 # set variable identifying the chroot you work in (used in the prompt below)
-if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
-    xterm-color) color_prompt=yes;;
+    xterm-color|*-256color) color_prompt=yes;;
 esac
 
 # uncomment for a colored prompt, if the terminal has the capability; turned
@@ -78,6 +84,10 @@ if [ -x /usr/bin/dircolors ]; then
     alias egrep='egrep --color=auto'
 fi
 
+
+#--------------------- @niazangels --------------------------
+
+
 # some more ls aliases
 alias ll='ls -alF'
 alias la='ls -A'
@@ -99,9 +109,38 @@ fi
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
-if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
     . /etc/bash_completion
+  fi
 fi
 
-# added by Anaconda2 2.4.1 installer
-export PATH="/home/halo/anaconda2/bin:$PATH"
+# Better directory transversal with .. and autocorrect dir spelling
+shopt -s autocd cdspell
+
+
+# Git branch and smiley ^_^ on success, O_O on fail
+if [ `id -u` -eq 0 ]
+	then seperator="#"
+	else seperator="$"
+fi
+
+PS1="\`if [ \$? = 0 ]; then echo \[\e[93m\]^_^\[\e[0m\]; else echo \[\e[31m\]O_O\[\e[0m\]; fi\` \[\e[31m\]\u\e[1;37m@\h\[$(tput sgr0)\] \e[0;34m\w\[\e[0m\] \`__git_ps1 ["%s"]\`\n\$seperator ";
+
+
+# Auto install suggestions
+# "The program x is not installed.  You can install it by typing sudo apt-get install x"
+# Suggests "Do you want to install it now? (y/N)"
+export COMMAND_NOT_FOUND_INSTALL_PROMPT=1
+
+source ~/.bash_aliases
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+export DOCKER_BUILDKIT=1
+
+# pyenv
+export PATH="$HOME/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
